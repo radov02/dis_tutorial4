@@ -21,10 +21,24 @@ find_package(action_msgs REQUIRED)
 find_package(nav2_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(robot_interfaces REQUIRED)
 
 install(PROGRAMS
   scripts/map_goals.py
   scripts/transform_point.py
+  scripts/detect_people.py
+  scripts/LLM.py
+  scripts/robot_commander.py
   DESTINATION lib/${PROJECT_NAME})
+
+install(PROGRAMS
+  scripts/voice_capture.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME voice_capture)
+
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 ament_package()

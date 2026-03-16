@@ -73,6 +73,49 @@ For our purposes, the quality of the generated voice does not matter, so do as y
 - [Kokoro TTS](https://github.com/nazdridoy/kokoro-tts)
 - [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS)
 
+
+...
+cd /home/erik/rins && colcon build --packages-select robot_interfaces dis_tutorial4
+source /home/erik/rins/install/setup.bash
+ros2 run dis_tutorial4 voice_capture --ros-args -p piper_model_path:=/home/erik/piper_models/en_US-lessac-medium/en_US-lessac-medium.onnx
+...
+
+### Install LLM locally:
+Do this on the machine:
+
+Install Ollama
+Run: curl -fsSL https://ollama.com/install.sh | sh
+
+Start the Ollama service
+Run: sudo systemctl enable --now ollama
+
+Pull the exact model your node expects
+Run: ollama pull llama3.2:3b
+
+Verify the HTTP endpoint
+Run: curl http://localhost:11434/api/generate -d '{"model":"llama3.2:3b","prompt":"hello","stream":false}'
+You should get JSON back with a response field.
+
+Install the Python dependency used by the node
+Best on Ubuntu/ROS: sudo apt install python3-requests
+
+Rebuild and source the workspace
+Run: cd /home/erik/rins && colcon build --packages-select dis_tutorial4 && source install/setup.bash
+
+Run the node
+Run: ros2 run dis_tutorial4 LLM.py
+
+### Run whole setup:
+- T1: `ros2 run rmw_zenoh_cpp rmw_zenohd`
+- T2: `ollama serve` (or check if already running: `ollama list`)
+- T2: `ros2 launch dis_tutorial3 sim_turtlebot_nav.launch.py map:=/home/erik/rins/src/dis_tutorial3/maps/maps.yaml` and use 2D Pose Estimate
+- T3: `cd /home/erik/rins && source install/setup.bash && ros2 run dis_tutorial4 LLM.py`
+- T4: `cd /home/erik/rins && source install/setup.bash && ros2 run dis_tutorial4 voice_capture --ros-args -p piper_model_path:=/home/erik/piper_models/en_US-lessac-medium/en_US-lessac-medium.onnx`
+- T5 to make one test request: `cd /home/erik/rins && source install/setup.bash && ros2 service call /human_detected robot_interfaces/srv/HumanDetected "{detect_signal: true}"`
+- T5: `ros2 run dis_tutorial4 detect_people.py`
+- T6: `ros2 run dis_tutorial4 robot_commander.py`
+
+
 ## Using ROS bags
 
 Those of you that can only work on the simulation in the lab, make use of the `ros2 bag` command line tool. It is a tool for recording all or some messages published. For example, you can run the simulation and drive to robot around the polygon, while recording the messages published (like the images from the camera). Then you can copy the `bag` file to another computer, replay it there, and work on face detection and clustering. The tutorial for `ros2 bag` is [here](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools/Recording-And-Playing-Back-Data/Recording-And-Playing-Back-Data.html).
