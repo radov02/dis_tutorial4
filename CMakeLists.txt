@@ -23,10 +23,15 @@ find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(robot_interfaces REQUIRED)
 
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
 install(PROGRAMS
   scripts/map_goals.py
   scripts/transform_point.py
-  scripts/detect_people.py
+  scripts/detect_people2.py
   scripts/LLM.py
   scripts/robot_commander.py
   DESTINATION lib/${PROJECT_NAME})

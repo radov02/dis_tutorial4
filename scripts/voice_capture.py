@@ -24,13 +24,13 @@ class VoiceNode(Node):
     def __init__(self):
         super().__init__('voice_node')
         self.callback_group = ReentrantCallbackGroup()
-        self.srv = self.create_service(HumanDetected,'human_detected',self.handle_human_detected,callback_group=self.callback_group,)
-        self.llm_client = self.create_client(LLMQuery,'llm_inference',callback_group=self.callback_group,)
+        self.srv = self.create_service(HumanDetected,'human_detected', self.handle_human_detected, callback_group=self.callback_group,)
+        self.llm_client = self.create_client(LLMQuery,'llm_inference', callback_group=self.callback_group,)
         self.llm_service_wait_timeout = 5.0
         self.llm_response_timeout = 12.0
         self.default_greeting = 'Hello! I hope you are doing well today.'
         self.greeting_prompt = (
-            'Reply with exactly one short friendly greeting asking how they are doing. '
+            'Reply with exactly one short friendly greeting to a factory worker that you just met. Be creative.'
             'No quotes. Maximum 12 words.'
         )
         self.cached_greeting = None
@@ -113,15 +113,12 @@ class VoiceNode(Node):
             cleaned = cleaned[1:-1].strip()
         return cleaned or self.default_greeting
 
-
     def response_callback(self, msg):
         self.get_logger().info(f'LLM Response: {msg.data}')
 
     def get_llm_response(self, prompt):
         if not self.llm_client.wait_for_service(timeout_sec=self.llm_service_wait_timeout):
-            self.get_logger().warn(
-                f'LLM service unavailable after {self.llm_service_wait_timeout:.1f}s, using fallback response.'
-            )
+            self.get_logger().warn(f'LLM service unavailable after {self.llm_service_wait_timeout:.1f}s, using fallback response.')
             return self.default_greeting
 
         llm_request = LLMQuery.Request()
@@ -129,14 +126,12 @@ class VoiceNode(Node):
         future = self.llm_client.call_async(llm_request)
 
         deadline = time.monotonic() + self.llm_response_timeout
-        while rclpy.ok() and not future.done() and time.monotonic() < deadline:
+        while rclpy.ok() and not future.done() and time.monotonic() < deadline:  # wait for response from LLM with timeout
             time.sleep(0.05)
 
         if not future.done():
             future.cancel()
-            self.get_logger().warn(
-                f'LLM request timed out after {self.llm_response_timeout:.1f}s, using fallback response.'
-            )
+            self.get_logger().warn(f'LLM request timed out after {self.llm_response_timeout:.1f}s, using fallback response.')
             return self.default_greeting
 
         try:
@@ -156,7 +151,8 @@ class VoiceNode(Node):
             self.get_logger().info('Human detected: prefetching LLM greeting only.')
             if self.cached_greeting is None:
                 self.get_logger().info('Generating greeting with LLM...')
-                llm_response = self.get_llm_response(self.greeting_prompt)
+                varied_prompt = f'{self.greeting_prompt} Variation token: {time.time_ns() % 1000000}.'
+                llm_response = self.get_llm_response(varied_prompt)
                 self.cached_greeting = self.sanitize_response_text(llm_response)
             else:
                 self.get_logger().info('Using cached greeting.')
@@ -168,12 +164,14 @@ class VoiceNode(Node):
         self.get_logger().info('Goal reached: playing prefetched greeting.')
         if self.cached_greeting is None:
             self.get_logger().warn('No cached greeting available, generating now.')
-            llm_response = self.get_llm_response(self.greeting_prompt)
+            varied_prompt = f'{self.greeting_prompt} Variation token: {time.time_ns() % 1000000}.'
+            llm_response = self.get_llm_response(varied_prompt)
             self.cached_greeting = self.sanitize_response_text(llm_response)
 
         self.get_logger().info(f'Greeting to play: {self.cached_greeting}')
         playback_succeeded = self.speak(self.cached_greeting)
         response.response_text = self.cached_greeting if playback_succeeded else ''
+        self.cached_greeting = None
 
         return response
 

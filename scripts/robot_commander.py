@@ -292,9 +292,7 @@ class RobotCommander(Node):
         for attempt in range(1, max_attempts + 1):
             response_text = self.trigger_interaction(detect_signal=True, timeout_sec=20.0)
             if response_text:
-                self.info(
-                    f'Prefetched interaction text on attempt {attempt}/{max_attempts}: {response_text}'
-                )
+                self.info(f'Prefetched interaction text on attempt {attempt}/{max_attempts}: {response_text}')
                 return response_text
 
             self.warn(f'Interaction prefetch failed on attempt {attempt}/{max_attempts}.')
@@ -307,9 +305,7 @@ class RobotCommander(Node):
         for attempt in range(1, max_attempts + 1):
             response_text = self.trigger_interaction(detect_signal=False)
             if response_text:
-                self.info(
-                    f'Interaction playback confirmed on attempt {attempt}/{max_attempts}: {response_text}'
-                )
+                self.info(f'Interaction playback confirmed on attempt {attempt}/{max_attempts}: {response_text}')
                 return response_text
 
             self.warn(f'Interaction playback not confirmed on attempt {attempt}/{max_attempts}.')
@@ -364,7 +360,7 @@ def main(args=None):
         rc.undock()
 
 	# load previously saved face detections from JSON file:
-    detections_json_path = '/home/erik/rins/people_detections.json'
+    detections_json_path = '/home/erik/rins/src/dis_tutorial4/people_detections.json'
     face_position_in_map_coordinates = []
     try:
         with open(detections_json_path, 'r') as f:

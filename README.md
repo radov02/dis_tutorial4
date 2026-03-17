@@ -80,41 +80,6 @@ source /home/erik/rins/install/setup.bash
 ros2 run dis_tutorial4 voice_capture --ros-args -p piper_model_path:=/home/erik/piper_models/en_US-lessac-medium/en_US-lessac-medium.onnx
 ...
 
-### Install LLM locally:
-Do this on the machine:
-
-Install Ollama
-Run: curl -fsSL https://ollama.com/install.sh | sh
-
-Start the Ollama service
-Run: sudo systemctl enable --now ollama
-
-Pull the exact model your node expects
-Run: ollama pull llama3.2:3b
-
-Verify the HTTP endpoint
-Run: curl http://localhost:11434/api/generate -d '{"model":"llama3.2:3b","prompt":"hello","stream":false}'
-You should get JSON back with a response field.
-
-Install the Python dependency used by the node
-Best on Ubuntu/ROS: sudo apt install python3-requests
-
-Rebuild and source the workspace
-Run: cd /home/erik/rins && colcon build --packages-select dis_tutorial4 && source install/setup.bash
-
-Run the node
-Run: ros2 run dis_tutorial4 LLM.py
-
-### Run whole setup:
-- T1: `ros2 run rmw_zenoh_cpp rmw_zenohd`
-- T2: `ollama serve` (or check if already running: `ollama list`)
-- T2: `ros2 launch dis_tutorial3 sim_turtlebot_nav.launch.py map:=/home/erik/rins/src/dis_tutorial3/maps/maps.yaml` and use 2D Pose Estimate
-- T3: `cd /home/erik/rins && source install/setup.bash && ros2 run dis_tutorial4 LLM.py`
-- T4: `cd /home/erik/rins && source install/setup.bash && ros2 run dis_tutorial4 voice_capture --ros-args -p piper_model_path:=/home/erik/piper_models/en_US-lessac-medium/en_US-lessac-medium.onnx`
-- T5 to make one test request: `cd /home/erik/rins && source install/setup.bash && ros2 service call /human_detected robot_interfaces/srv/HumanDetected "{detect_signal: true}"`
-- T5: `ros2 run dis_tutorial4 detect_people.py`
-- T6: `ros2 run dis_tutorial4 robot_commander.py`
-
 
 ## Using ROS bags
 
@@ -125,3 +90,38 @@ Those of you that can only work on the simulation in the lab, make use of the `r
 If you want to use multiple computers so they will be able to see each others' ROS2 topics, there are several options, depending on the RMW used. You will have to set `export ROS_LOCALHOST_ONLY=0` and `export ROS_DOMAIN_ID=<id>` (number between 0 and 101) so RMW will only listen on the appropriate [ports](https://docs.ros.org/en/jazzy/Concepts/Intermediate/About-Domain-ID.html).
 
 More in depth information regarding different RMW implementations is available [here](RMW_notes.md).
+
+
+# Whole process:
+## Detect and save face positions (again, improved)
+- T1: `ros2 run rmw_zenoh_cpp rmw_zenohd`
+- T2: `ros2 launch dis_tutorial4 sim_turtlebot_nav.launch.py map:=/home/erik/rins/maps/maps.yaml` (notice that here we use the newly created folder for maps into which we copied our map files; the program)
+- in RViz do '2D Pose Estimate'
+- T3: `ros2 run dis_tutorial4 detect_people2.py`
+- in RViz Displays menu click 'Add' > 'By topic' and find topic `/people_marker` (`/people_marker_array`) and click on Marker and 'OK' to add it
+- when you went through the map, just `Ctrl+C` the T3 to get faces stored in the `/home/erik/rins/src/dis_tutorial4/people_detections.json`
+
+## Setup LLM to make conversations with people
+- install LLM locally:
+    - `curl -fsSL https://ollama.com/install.sh | sh` (install Ollama)
+    - `sudo systemctl enable --now ollama` if first time or `ollama serve` (start the Ollama service, if error, check if already started via `ollama list`)
+    - `ollama pull llama3.2:3b` (pull the model our node will use)
+    - optionally: `curl http://localhost:11434/api/generate -d '{"model":"llama3.2:3b","prompt":"hello","stream":false}'` (verify HTTP endpoint if we get JSON with response field)
+    - `sudo apt install python3-requests` (install Python dependency)
+    - `cd /home/erik/rins && colcon build --packages-select dis_tutorial4 && source install/setup.bash` (rebuild and source the workspace)
+    - to run the node: `cd /home/erik/rins && source install/setup.bash && ros2 run dis_tutorial4 LLM.py`
+![alt text](<LLM setup.jpg>)
+
+## Try out the walk & greet
+- T1: `ros2 run rmw_zenoh_cpp rmw_zenohd`
+- T2: `ollama serve` (or check if already running: `ollama list`)
+- T2: `ros2 launch dis_tutorial4 sim_turtlebot_nav.launch.py map:=/home/erik/rins/maps/maps.yaml` and use 2D Pose Estimate
+- T3: `cd /home/erik/rins && source install/setup.bash && ros2 run dis_tutorial4 LLM.py`
+- T4: `cd /home/erik/rins && source install/setup.bash && ros2 run dis_tutorial4 voice_capture --ros-args -p piper_model_path:=/home/erik/piper_models/en_US-lessac-medium/en_US-lessac-medium.onnx`
+- optionally: T5 to make one test request: `cd /home/erik/rins && source install/setup.bash && ros2 service call /human_detected robot_interfaces/srv/HumanDetected "{detect_signal: true}"`
+- T5: `ros2 run dis_tutorial4 detect_people2.py`
+- T6: `ros2 run dis_tutorial4 robot_commander.py`
+
+## TODO:
+3. modularize the robot commander
+4. do the walking on map to find faces autonomously ...
