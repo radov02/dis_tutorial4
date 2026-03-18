@@ -22,7 +22,7 @@ from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
-pkg_dis_tutorial3 = get_package_share_directory('dis_tutorial3')
+pkg_dis_tutorial4 = get_package_share_directory('dis_tutorial4')
 
 ARGUMENTS = [
     DeclareLaunchArgument('namespace', default_value='', description='Robot namespace'),
@@ -30,7 +30,7 @@ ARGUMENTS = [
     DeclareLaunchArgument('world', default_value='bird_demo1', description='Simulation World'),
     DeclareLaunchArgument('model', default_value='standard', choices=['standard', 'lite'], description='Turtlebot4 Model'),
     DeclareLaunchArgument('use_sim_time', default_value='true', choices=['true', 'false'], description='use_sim_time'),
-    DeclareLaunchArgument('map', default_value=PathJoinSubstitution([pkg_dis_tutorial3, 'maps', 'bird_demo.yaml']), description='Full path to map yaml file to load'),
+    DeclareLaunchArgument('map', default_value=PathJoinSubstitution([pkg_dis_tutorial4, 'maps', 'bird_demo.yaml']), description='Full path to map yaml file to load'),
 ]
 
 for pose_element in ['x', 'y', 'z', 'yaw']:
@@ -38,10 +38,10 @@ for pose_element in ['x', 'y', 'z', 'yaw']:
 
 def generate_launch_description():    
     # Launch Files
-    gazebo_launch = PathJoinSubstitution([pkg_dis_tutorial3, 'launch', 'sim.launch.py'])
-    robot_spawn_launch = PathJoinSubstitution([pkg_dis_tutorial3, 'launch', 'turtlebot4_spawn.launch.py'])
-    localization_launch = PathJoinSubstitution([pkg_dis_tutorial3, 'launch', 'localization.launch.py'])
-    nav2_launch = PathJoinSubstitution([pkg_dis_tutorial3, 'launch', 'nav2.launch.py'])
+    gazebo_launch = PathJoinSubstitution([pkg_dis_tutorial4, 'launch', 'sim.launch.py'])
+    robot_spawn_launch = PathJoinSubstitution([pkg_dis_tutorial4, 'launch', 'turtlebot4_spawn.launch.py'])
+    localization_launch = PathJoinSubstitution([pkg_dis_tutorial4, 'launch', 'localization.launch.py'])
+    nav2_launch = PathJoinSubstitution([pkg_dis_tutorial4, 'launch', 'nav2.launch.py'])
 
     #Simulator and world
     gazebo = IncludeLaunchDescription(

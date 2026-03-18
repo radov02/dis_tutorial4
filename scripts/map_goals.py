@@ -32,7 +32,6 @@ class MapGoals(Node):
 
         # Basic ROS stuff
         timer_frequency = 2
-        map_topic = "/map"
         timer_period = 1/timer_frequency
 
         # Functional variables
@@ -50,7 +49,9 @@ class MapGoals(Node):
                          "origin":None} # origin will be in the format [x,y,theta]
 
         # Subscribe to map, and create an action client for sending goals
-        self.occupancy_grid_sub = self.create_subscription(OccupancyGrid, map_topic, self.map_callback, qos_profile)
+        self.occupancy_grid_sub = self.create_subscription(OccupancyGrid, "/map", self.map_callback, qos_profile)
+        # ros2 topic echo /map -n 1 -p
+
         self.nav_to_pose_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
 
         # Create a timer, to do the main work.

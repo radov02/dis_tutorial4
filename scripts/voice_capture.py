@@ -147,7 +147,7 @@ class VoiceNode(Node):
         return self.sanitize_response_text(llm_result.response)
 
     def handle_human_detected(self, request, response):
-        if request.detect_signal:
+        if request.prefetching:
             self.get_logger().info('Human detected: prefetching LLM greeting only.')
             if self.cached_greeting is None:
                 self.get_logger().info('Generating greeting with LLM...')

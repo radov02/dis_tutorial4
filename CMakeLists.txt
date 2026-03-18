@@ -30,7 +30,6 @@ install(DIRECTORY
 
 install(PROGRAMS
   scripts/map_goals.py
-  scripts/transform_point.py
   scripts/detect_people2.py
   scripts/LLM.py
   scripts/robot_commander.py

@@ -58,6 +58,7 @@ class detect_faces(Node):
 		self.face_best_alignment_score = []  # tracks best combined score per face
 		# minimum distance (meters) between two detections to consider them different people
 		self.dedup_distance = 1.5
+		self.max_detection_z = 0.77
 
 		# map info for saving detections to PGM
 		self.map_yaml_path = '/home/erik/rins/maps.yaml'
@@ -179,6 +180,10 @@ class detect_faces(Node):
 				map_y = point_in_map.point.y
 				map_z = point_in_map.point.z
 
+				if map_z > self.max_detection_z:
+					self.get_logger().warn(f"Skipping detection: center z={map_z:.2f}m exceeds max_detection_z={self.max_detection_z:.2f}m")
+					continue
+
 				# estimate wall tangent from left/right points in bbox and offset
 				# by 0.5m along the perpendicular (wall normal).
 				offset_distance = 0.5
@@ -273,8 +278,7 @@ class detect_faces(Node):
 					self.face_position_in_map_coordinates.append((map_x, map_y, map_z))
 					self.face_best_alignment_score.append(combined_score)
 					self.get_logger().info(f"NEW face in map coordinates: ({map_x:.2f}, {map_y:.2f}, {map_z:.2f}), score: {combined_score:.3f}")
-				else:
-					# guard: if score list is shorter than position list, pad it
+				elif not is_new and matched_idx >= 0:
 					while len(self.face_best_alignment_score) <= matched_idx:
 						self.face_best_alignment_score.append(0.0)
 					prev_best = self.face_best_alignment_score[matched_idx]
@@ -358,6 +362,7 @@ class detect_faces(Node):
 			with open(self.detections_json_path, 'r') as f:
 				data = json.load(f)
 			self.face_position_in_map_coordinates = [tuple(d) for d in data]
+			self.face_best_alignment_score = [0.0] * len(self.face_position_in_map_coordinates)
 			self.get_logger().info(f"Loaded {len(self.face_position_in_map_coordinates)} previous detections from {self.detections_json_path}")
 		except FileNotFoundError:
 			self.get_logger().info("No previous detections file found, starting fresh.")
